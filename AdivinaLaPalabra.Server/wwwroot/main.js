@@ -14,6 +14,14 @@ document.getElementById("joinButton").addEventListener("click", function () {
 
 function saveName() {
     const username = document.getElementById("usernameInput").value;
+
+    if(username == "")
+    {
+        alert("No ingresaste un nombre, intenta nuevamente.");
+        return;
+    }
+    
+
     sessionStorage.setItem("username", username);
 
     window.location.href = "/Draw/game.html";
