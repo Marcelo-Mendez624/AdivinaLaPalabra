@@ -4,10 +4,11 @@ let lastX = 0;
 let lastY = 0;
 
 let canvas = null;
-
+let clearButton = null;
 export function setupCanvas(connection)
 {
     canvas = document.getElementById("gameCanvas");
+    clearButton = document.getElementById("clearCanvas");
 
     ajustarResolucionCanvas();
     hubConnection = connection;
@@ -18,6 +19,11 @@ export function setupCanvas(connection)
     canvas.addEventListener("mouseup", stopDrawing);
     canvas.addEventListener("mouseout", stopDrawing);
 
+    clearButton.addEventListener("click", () => {
+        hubConnection.invoke("ClearCanvas", sessionStorage.getItem("roomCode"))
+            .then(() => console.log("¡Canvas borrado correctamente!"))
+            .catch(err => console.error("Error al borrar el canvas: ", err));
+    });
     
 }
 
@@ -70,3 +76,7 @@ export function drawLine(startX, startY, endX, endY, color, thickness)
     ctx.stroke();
 }
 
+export function clearCanvas(){
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}

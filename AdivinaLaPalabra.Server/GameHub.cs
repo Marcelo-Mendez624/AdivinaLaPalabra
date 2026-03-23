@@ -32,6 +32,18 @@ public class GameHub : Hub
         await Clients.OthersInGroup(roomCode).SendAsync("ReceiveDrawLine", startX, startY, endX, endY, c, t);
     }
 
+    public async Task ClearCanvas(string roomCode)
+    {
+        // Limpia el historial de trazos para la sala
+        if (historialTrazos.ContainsKey(roomCode))
+        {
+            historialTrazos[roomCode].Clear();
+        }
+
+        // Notifica a todos los clientes en la sala que deben limpiar el canvas
+        await Clients.Group(roomCode).SendAsync("ClearCanvas");
+    }
+
     public override async Task OnConnectedAsync()
     {
         await base.OnConnectedAsync();

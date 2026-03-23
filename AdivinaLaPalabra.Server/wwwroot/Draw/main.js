@@ -1,4 +1,4 @@
-import { drawLine, setupCanvas } from "./draw.js";
+import { drawLine, setupCanvas, clearCanvas } from "./draw.js";
 import { recibeMessage, sendMessage } from "./chat.js";
     
 sessionStorage.getItem("username") || sessionStorage.setItem("username", "Player" + Math.floor(Math.random() * 1000));
@@ -39,6 +39,7 @@ connection.on("LoadHistory", (historial) => {
     });
 });
 
+
 setupCanvas(connection);
 
 connection.on("ReceiveDrawLine", (startX, startY, endX, endY, color, thickness) => 
@@ -47,10 +48,16 @@ connection.on("ReceiveDrawLine", (startX, startY, endX, endY, color, thickness) 
 });
 
 
+connection.on("ClearCanvas", () => {
+    clearCanvas();
+});
+
 // Iniciar la conexión con el servidor
 connection.start()
     .then(() => {
         console.log("¡Conexión exitosa a SignalR!");
+
+        document.getElementById("pinValue").textContent = sessionStorage.getItem("roomCode") || "0000";
 
         connection.invoke("JoinRoom", sessionStorage.getItem("roomCode"))
             .then(() => console.log("¡Unido a la sala correctamente!"))
