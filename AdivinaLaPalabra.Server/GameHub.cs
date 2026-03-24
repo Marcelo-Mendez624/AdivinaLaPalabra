@@ -70,6 +70,11 @@ public class GameHub : Hub
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomCode);
     }
+
+    public async Task SetNewWord(string roomCode, string newWord)
+    {
+        await Clients.Group(roomCode).SendAsync("UpdateCurrentWord", newWord);
+    }
 }
 
 

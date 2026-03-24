@@ -58,6 +58,9 @@ connection.on("ClearCanvas", () => {
 setNewWord = () => {
     currentWord = randomWord();
     document.getElementById("currentWordDisplay").textContent = currentWord;
+    connection.invoke("SetNewWord", sessionStorage.getItem("roomCode"), currentWord)
+        .then(() => console.log("¡Nueva palabra enviada al servidor!"))
+        .catch(err => console.error("Error al enviar la nueva palabra: ", err));
 };
 
 // Iniciar la conexión con el servidor
