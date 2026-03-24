@@ -1,5 +1,6 @@
 import { drawLine, setupCanvas, clearCanvas } from "./draw.js";
 import { recibeMessage, sendMessage } from "./chat.js";
+import { randomWord } from "./gameRules.js";
     
 sessionStorage.getItem("username") || sessionStorage.setItem("username", "Player" + Math.floor(Math.random() * 1000));
 
@@ -52,12 +53,20 @@ connection.on("ClearCanvas", () => {
     clearCanvas();
 });
 
+// Game Rules
+
+setNewWord = () => {
+    currentWord = randomWord();
+    document.getElementById("currentWordDisplay").textContent = currentWord;
+};
+
 // Iniciar la conexión con el servidor
 connection.start()
     .then(() => {
         console.log("¡Conexión exitosa a SignalR!");
 
         document.getElementById("pinValue").textContent = sessionStorage.getItem("roomCode") || "0000";
+        setNewWord();
 
         connection.invoke("JoinRoom", sessionStorage.getItem("roomCode"))
             .then(() => console.log("¡Unido a la sala correctamente!"))
