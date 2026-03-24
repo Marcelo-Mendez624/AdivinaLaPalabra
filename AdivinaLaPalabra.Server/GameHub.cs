@@ -12,6 +12,8 @@ public class GameHub : Hub
 
     private static Dictionary<string, List<DrawLineData>> historialTrazos = new Dictionary<string, List<DrawLineData>>();
 
+    private static Dictionary<string, List<string>> players = new Dictionary<string, List<string>>();
+
     public async Task DrawLine(float startX, float startY, float endX, float endY, string c, float t,
      string roomCode)
     {
@@ -50,9 +52,19 @@ public class GameHub : Hub
 
     }
 
-    public async Task JoinRoom(string roomCode)
+    public async Task JoinRoom(string roomCode, string username)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
+
+        if(!players.ContainsKey(roomCode))
+        {
+            players[roomCode] = new List<string>();
+        }
+
+        if(!players[roomCode].Contains(username))
+        {
+            players[roomCode].Add(username);
+        }
 
         // Si la sala ya tiene dibujos, se los mandamos
         if (historialTrazos.ContainsKey(roomCode))
@@ -71,9 +83,30 @@ public class GameHub : Hub
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomCode);
     }
 
-    public async Task SetNewWord(string roomCode, string newWord)
+    public async Task SetNewWord(string roomCode)
     {
+        var word = new List<string> { "apple", "banana", "cat", "dog", "elephant", "flower", "guitar", "house", "ice cream", "jungle" };
+       
+        var random = new Random();
+
+        var newWord = word[random.Next(word.Count)];
+
         await Clients.Group(roomCode).SendAsync("UpdateCurrentWord", newWord);
+    }
+
+    public async Task setPlayerTurn(string roomCode, string playerName)
+    {
+        if (players.ContainsKey(roomCode) && players[roomCode].Count > 0)
+    {
+        var random = new Random();
+        var listaJugadores = players[roomCode];
+        
+        // Elegimos un jugador al azar de la lista
+        string dibujanteElegido = listaJugadores[random.Next(listaJugadores.Count)];
+
+        // Le avisamos a la sala entera quién es el dibujante
+        await Clients.Group(roomCode).SendAsync("UpdatePlayerTurn", dibujanteElegido);
+    }
     }
 }
 

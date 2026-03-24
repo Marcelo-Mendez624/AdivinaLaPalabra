@@ -1,6 +1,6 @@
-import { drawLine, setupCanvas, clearCanvas } from "./draw.js";
+import { drawLine, setupCanvas, clearCanvas, setRolDibujante } from "./draw.js";
 import { recibeMessage, sendMessage } from "./chat.js";
-import { randomWord } from "./gameRules.js";
+
     
 sessionStorage.getItem("username") || sessionStorage.setItem("username", "Player" + Math.floor(Math.random() * 1000));
 
@@ -55,26 +55,47 @@ connection.on("ClearCanvas", () => {
 
 // Game Rules
 
-setNewWord = () => {
-    currentWord = randomWord();
-    document.getElementById("currentWordDisplay").textContent = currentWord;
-    connection.invoke("SetNewWord", sessionStorage.getItem("roomCode"), currentWord)
-        .then(() => console.log("¡Nueva palabra enviada al servidor!"))
-        .catch(err => console.error("Error al enviar la nueva palabra: ", err));
-};
 
-// Iniciar la conexión con el servidor
+connection.on("UpdateCurrentWord", (word) => {
+    document.getElementById("currentWordDisplay").textContent = "La palabra a dibujar es: " + word;
+});
+
+// ESCUCHADOR DE TURNOS
+connection.on("UpdatePlayerTurn", (dibujanteElegido) => {
+    const miNombre = sessionStorage.getItem("username");
+    
+    // Mostramos visualmente quién dibuja
+    document.getElementById("playerTurn").textContent = dibujanteElegido;
+    
+    if (miNombre === dibujanteElegido) {
+        console.log("¡ES MI TURNO DE DIBUJAR!");
+        setRolDibujante(true);
+    } else {
+        console.log("Le toca dibujar a: " + dibujanteElegido);
+        setRolDibujante(false);
+    }
+});
+
+// INICIO DE CONEXIÓN
 connection.start()
     .then(() => {
         console.log("¡Conexión exitosa a SignalR!");
+        
+        const roomCode = sessionStorage.getItem("roomCode");
+        const username = sessionStorage.getItem("username");
 
-        document.getElementById("pinValue").textContent = sessionStorage.getItem("roomCode") || "0000";
-        setNewWord();
+        document.getElementById("pinValue").textContent = roomCode || "0000";
 
-        connection.invoke("JoinRoom", sessionStorage.getItem("roomCode"))
-            .then(() => console.log("¡Unido a la sala correctamente!"))
+        // Primero nos unimos...
+        connection.invoke("JoinRoom", roomCode, username)
+            .then(() => {
+                console.log("¡Unido a la sala correctamente!");
+                
+                // ...y SOLO CUANDO ESTAMOS DENTRO, pedimos palabra y turno
+                connection.invoke("SetNewWord", roomCode);
+                // Le pasas un string vacío a playerName porque el servidor ya no lo usa para elegir
+                connection.invoke("setPlayerTurn", roomCode, ""); 
+            })
             .catch(err => console.error("Error al unirse a la sala: ", err));
-        // TODO Aquí podria habilitar el botón de enviar, que por defecto podría estar deshabilitado.
     })
     .catch(err => console.error("Error al conectar: ", err));
-

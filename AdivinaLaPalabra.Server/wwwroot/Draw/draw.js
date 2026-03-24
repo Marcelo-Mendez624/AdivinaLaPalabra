@@ -5,6 +5,14 @@ let lastY = 0;
 
 let canvas = null;
 let clearButton = null;
+
+export let soyDibujante = false;
+
+export function setRolDibujante(estado) {
+    soyDibujante = estado;
+}
+
+
 export function setupCanvas(connection)
 {
     canvas = document.getElementById("gameCanvas");
@@ -35,6 +43,7 @@ function ajustarResolucionCanvas()
 
 function startDrawing(event)
 {
+    if(!soyDibujante) return;
     bIsDrawing = true;
     lastX = event.offsetX;
     lastY = event.offsetY;
@@ -42,7 +51,7 @@ function startDrawing(event)
 
 function draw(event)
 {
-    if (!bIsDrawing) return;
+    if (!bIsDrawing || !soyDibujante) return;
 
     const color = document.getElementById("colorPicker").value; 
     
@@ -77,6 +86,8 @@ export function drawLine(startX, startY, endX, endY, color, thickness)
 }
 
 export function clearCanvas(){
+    if(!soyDibujante) return;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
+
