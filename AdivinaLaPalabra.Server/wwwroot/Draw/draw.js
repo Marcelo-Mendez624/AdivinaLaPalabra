@@ -28,6 +28,7 @@ export function setupCanvas(connection)
     canvas.addEventListener("mouseout", stopDrawing);
 
     clearButton.addEventListener("click", () => {
+        if(!soyDibujante) return;
         hubConnection.invoke("ClearCanvas", sessionStorage.getItem("roomCode"))
             .then(() => console.log("¡Canvas borrado correctamente!"))
             .catch(err => console.error("Error al borrar el canvas: ", err));
@@ -86,8 +87,10 @@ export function drawLine(startX, startY, endX, endY, color, thickness)
 }
 
 export function clearCanvas(){
-    if(!soyDibujante) return;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
+export function getSoyDibujante() {
+    return soyDibujante;
+}

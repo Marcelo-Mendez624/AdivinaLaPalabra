@@ -1,4 +1,4 @@
-import { drawLine, setupCanvas, clearCanvas, setRolDibujante } from "./draw.js";
+import { drawLine, setupCanvas, clearCanvas, setRolDibujante, getSoyDibujante } from "./draw.js";
 import { recibeMessage, sendMessage } from "./chat.js";
 
     
@@ -50,6 +50,8 @@ connection.on("ReceiveDrawLine", (startX, startY, endX, endY, color, thickness) 
 
 
 connection.on("ClearCanvas", () => {
+    if(!getSoyDibujante()) return;
+    
     clearCanvas();
 });
 
@@ -91,9 +93,8 @@ connection.start()
             .then(() => {
                 console.log("¡Unido a la sala correctamente!");
                 
-                // ...y SOLO CUANDO ESTAMOS DENTRO, pedimos palabra y turno
                 connection.invoke("SetNewWord", roomCode);
-                // Le pasas un string vacío a playerName porque el servidor ya no lo usa para elegir
+                
                 connection.invoke("setPlayerTurn", roomCode, ""); 
             })
             .catch(err => console.error("Error al unirse a la sala: ", err));

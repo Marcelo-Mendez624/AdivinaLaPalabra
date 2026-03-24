@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AdivinaLaPalabra.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+26b68212cfe61e88e309ec91060a872ea0d55e50")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7e5f5cab26f099b524b06a77d7624b9792b5e158")]
 [assembly: System.Reflection.AssemblyProductAttribute("AdivinaLaPalabra.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AdivinaLaPalabra.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -40,8 +40,14 @@ main{
     background-color: #575757;
 }
 
-canvas
+#gameCanvas
 {
-    height: auto;
-    width: auto;
+    height: 80%;
+    width: 100%;
+}
+
+#currentWord{
+    text-align: center;
+    font-size: 24px;
+    color: white;
 }
