@@ -1,0 +1,23 @@
+# ==================================
+# Build de C# y .NET
+# ==================================
+bin/
+obj/
+
+# ==================================
+# Configuraciones locales de IDE
+# ==================================
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ==================================
+# Archivos temporales y del Sistema
+# ==================================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
