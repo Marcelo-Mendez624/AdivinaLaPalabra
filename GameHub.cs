@@ -5,11 +5,46 @@ namespace AdivinaLaPalabra.Server.Hubs;
 
 public class GameHub : Hub
 {
+    public async Task JoinRoom(string roomCode, string username)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
+
+        if(!players.ContainsKey(roomCode))
+        {
+            players[roomCode] = new List<string>();
+        }
+
+        if(!players[roomCode].Contains(username))
+        {
+            players[roomCode].Add(username);
+        }
+
+        // Si la sala ya tiene dibujos, se los mandamos
+        if (historialTrazos.ContainsKey(roomCode))
+        {
+            await Clients.Caller.SendAsync("LoadHistory", historialTrazos[roomCode]);
+        }
+        else 
+        {
+            // Si es una sala nueva, le mandamos una lista vacía para no romper nada
+            await Clients.Caller.SendAsync("LoadHistory", new List<DrawLineData>());
+        }
+    }
+    public async Task LeaveRoom(string roomCode)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomCode);
+    }
+    public override async Task OnConnectedAsync()
+    {
+        await base.OnConnectedAsync();
+    }
+    
     public async Task SendMessage(string user, string message, string roomCode)
     {
         await Clients.Group(roomCode).SendAsync("ReceiveMessage", user, message);
     }
 
+    // variable que guarda los dibujos que tenemos en cada sala
     private static Dictionary<string, List<DrawLineData>> historialTrazos = new Dictionary<string, List<DrawLineData>>();
 
     private static Dictionary<string, List<string>> players = new Dictionary<string, List<string>>();
@@ -17,7 +52,6 @@ public class GameHub : Hub
     public async Task DrawLine(float startX, float startY, float endX, float endY, string c, float t,
      string roomCode)
     {
-        // 1. Crea el objeto con los datos recibidos
         var nuevoTrazo = new DrawLineData(startX, startY, endX, endY, c, t);
 
         var pin = roomCode;
@@ -46,67 +80,56 @@ public class GameHub : Hub
         await Clients.Group(roomCode).SendAsync("ClearCanvas");
     }
 
-    public override async Task OnConnectedAsync()
-    {
-        await base.OnConnectedAsync();
+    
+    private static Dictionary<string, string> secretWord 
+        = new Dictionary<string, string>();
 
-    }
+    private static Dictionary<string, string> dibujante 
+        = new Dictionary<string, string>();
 
-    public async Task JoinRoom(string roomCode, string username)
-    {
-        await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
 
-        if(!players.ContainsKey(roomCode))
-        {
-            players[roomCode] = new List<string>();
-        }
-
-        if(!players[roomCode].Contains(username))
-        {
-            players[roomCode].Add(username);
-        }
-
-        // Si la sala ya tiene dibujos, se los mandamos
-        if (historialTrazos.ContainsKey(roomCode))
-        {
-            await Clients.Caller.SendAsync("LoadHistory", historialTrazos[roomCode]);
-        }
-        else 
-        {
-            // Si es una sala nueva, le mandamos una lista vacía para no romper nada
-            await Clients.Caller.SendAsync("LoadHistory", new List<DrawLineData>());
-        }
-    }
-
-     public async Task LeaveRoom(string roomCode)
-    {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomCode);
-    }
-
-    public async Task SetNewWord(string roomCode)
-    {
-        var word = new List<string> { "apple", "banana", "cat", "dog", "elephant", "flower", "guitar", "house", "ice cream", "jungle" };
-       
-        var random = new Random();
-
-        var newWord = word[random.Next(word.Count)];
-
-        await Clients.Group(roomCode).SendAsync("UpdateCurrentWord", newWord);
-    }
-
-    public async Task setPlayerTurn(string roomCode, string playerName)
+    public async Task RoundStart(string roomCode)
     {
         if (players.ContainsKey(roomCode) && players[roomCode].Count > 0)
-    {
-        var random = new Random();
-        var listaJugadores = players[roomCode];
-        
-        // Elegimos un jugador al azar de la lista
-        string dibujanteElegido = listaJugadores[random.Next(listaJugadores.Count)];
-
-        // Le avisamos a la sala entera quién es el dibujante
-        await Clients.Group(roomCode).SendAsync("UpdatePlayerTurn", dibujanteElegido);
+        {
+            var random = new Random();
+            var playersList = players[roomCode];
+            string dibujanteElegido = playersList[random.Next(playersList.Count)];
+            
+            dibujante[roomCode] = dibujanteElegido;
+            
+            var words = new List<string> { "apple", "banana", "cat", "dog", "elephant", "guitar" };
+            string palabraSecreta = words[random.Next(words.Count)];
+            
+            secretWord[roomCode] = palabraSecreta;
+            
+            // devuelve para apple _ _ _ _ _
+            string palabraOculta = string.Join(" ", new string('_', palabraSecreta.Length).ToCharArray());
+                    
+            await Clients.Group(roomCode).SendAsync("RondaIniciada", dibujanteElegido, palabraOculta);
+        }
     }
+
+    public async Task AskForSecretWord(string roomCode, string username)
+    {
+        if (dibujante.ContainsKey(roomCode) && dibujante[roomCode] == username)
+        {
+            string palabraReal = secretWord[roomCode];
+
+            await Clients.Caller.SendAsync("RecibirPalabraSecreta", palabraReal);
+        }
+    }
+
+    public async Task MakeGuess(string roomCode, string username, string guess)
+    {
+        if (secretWord.ContainsKey(roomCode) && secretWord[roomCode].Equals(guess, StringComparison.OrdinalIgnoreCase))
+        {
+            await Clients.Group(roomCode).SendAsync("JugadorAdivino", username, secretWord[roomCode]);
+        }
+        else
+        {
+            await Clients.Caller.SendAsync("RespuestaIncorrecta");
+        }
     }
 }
 
